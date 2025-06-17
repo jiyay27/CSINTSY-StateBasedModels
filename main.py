@@ -12,7 +12,7 @@
 import networkx as nx
 import matplotlib.pyplot as plt
 from utils.math_utils import euclidean, euclidean_heuristic
-from utils.bfs_utils import bfs
+from utils.uninformed_search import dfs, ucs
 
 # Define the positions of each eatery in a 2D space (x, y) coordinates.
 positions = {
@@ -40,6 +40,7 @@ positions = {
     "Tapa King": (5, -2)
 }
 
+# Rescale positions for better visuals
 scale_factor = 50
 scaled_positions = {node: (x * scale_factor, y * scale_factor) for node, (x, y) in positions.items()}
 
@@ -80,6 +81,54 @@ edges = [
 
 heuristics = {}
 
+def initialize_graph():
+    G = nx.Graph()
+    G.add_nodes_from(scaled_positions.keys())
+
+    for n1, n2 in edges:
+        distance = euclidean(scaled_positions[n1], scaled_positions[n2])
+        G.add_edge(n1, n2, weight=distance)
+    
+    return G
+
+def draw_graph(graph, path, positions, cost=None):
+    edge_colors = []
+    for edge in graph.edges():
+        if edge in list(zip(path, path[1:])) or tuple(reversed(edge)) in list(zip(path, path[1:])):
+            edge_colors.append('red')
+        else:
+            edge_colors.append('gray')
+
+    plt.figure(figsize=(12, 10))
+    nx.draw(graph, positions, with_labels=True, node_color='lightblue', node_size=1500,
+            edge_color=edge_colors, width=2, font_size=12)
+    
+    edge_distances = {
+        (u, v): f"{int(d['weight'])}m" for u, v, d in graph.edges(data=True)
+    }
+
+    nx.draw_networkx_edge_labels(
+        graph, positions,
+        edge_labels=edge_distances,
+        font_size=9,
+        font_color='black'
+    )
+
+    return plt
+
+def display_dfs_path(graph, start, goal):
+    dfs_path = dfs(graph, start, goal)
+    print("DFS Path", dfs_path)
+    
+    return dfs_path, "DFS Search"
+
+def display_ucs_path(graph, start, goal):
+    ucs_path, cost = ucs(graph, start, goal)
+    print("UCS Path", ucs_path)
+    print("Total Cost ", cost)
+    
+    return ucs_path, cost, "UCS Search"
+
 def main():
     # Eatery List
     # McDonald's, Bloemen, Agno, Starbucks, 711, Perico's, La Toca
@@ -87,46 +136,23 @@ def main():
     # Jollibee, Chowking, Burger King, Tokyo Tokyo, Green Mall
     # Uncle John's, Gang Gang Chicken
 
-    # Visualization graph
-    G = nx.Graph()
-    G.add_nodes_from(scaled_positions.keys())
-
-    for n1, n2 in edges:
-        distance = euclidean(scaled_positions[n1], scaled_positions[n2])
-        G.add_edge(n1, n2, weight=distance)
-
+    G = initialize_graph()
     
+    start = "24 Chicken"
+    goal = "Green Mall"
 
-    bfs_path = bfs(G, "Mang Inasal", "La Toca")
-    print("BFS Path", bfs_path)
+    #dfs_path, name = display_dfs_path(G, start, goal)
+
+    ucs_path, cost, name = display_ucs_path(G, start, goal)
 
     pos = scaled_positions
 
-    # Define edge colors: red for path, gray for others
-    edge_colors = []
-    for edge in G.edges():
-        if edge in list(zip(bfs_path, bfs_path[1:])) or tuple(reversed(edge)) in list(zip(bfs_path, bfs_path[1:])):
-            edge_colors.append('red')
-        else:
-            edge_colors.append('gray')
+    #draw_graph(G, dfs_path, pos)
 
-    plt.figure(figsize=(12, 10))
-    nx.draw(G, pos, with_labels=True, node_color='lightblue', node_size=1500,
-            edge_color=edge_colors, width=2, font_size=12)
-    
-    edge_distances = {
-        (u, v): f"{int(d['weight'])}m" for u, v, d in G.edges(data=True)
-    }
-
-    nx.draw_networkx_edge_labels(
-        G, pos,
-        edge_labels=edge_distances,
-        font_size=9,
-        font_color='black'
-    )
+    draw_graph(G, ucs_path, pos, cost=cost)
 
     plt.axis("equal")
-    plt.title("BFS Path (Red)")
+    plt.title(f"{name} from {start} to {goal}")
     plt.show()
 
 if __name__ == "__main__":
