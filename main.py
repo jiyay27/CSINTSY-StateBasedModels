@@ -13,6 +13,7 @@ import networkx as nx
 import matplotlib.pyplot as plt
 from utils.math_utils import euclidean, euclidean_heuristic
 from utils.uninformed_utils import dfs, ucs
+from utils.informed_utils import astar
 
 # Define the positions of each eatery in a 2D space (x, y) coordinates.
 positions = {
@@ -152,7 +153,6 @@ def main():
     draw_graph(G, ucs_path, pos, cost=cost)
 
     plt.axis("equal")
-    # plt.title(f"{name} from {start} to {goal}")
     plt.show()
 
 if __name__ == "__main__":
