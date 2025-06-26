@@ -12,7 +12,7 @@
 import networkx as nx
 import matplotlib.pyplot as plt
 from utils.math_utils import euclidean, euclidean_heuristic
-from utils.uninformed_utils import dfs, ucs
+from utils.uninformed_utils import ucs
 from utils.informed_utils import astar
 
 # Define the positions of each eatery in a 2D space (x, y) coordinates.
@@ -80,49 +80,56 @@ edges = [
     ("24 Chicken", "K-Mart"),
 ]
 
-
-heuristics = {}
-
 def initialize_graph():
     G = nx.Graph()
     G.add_nodes_from(scaled_positions.keys())
 
-    for n1, n2 in edges:
-        distance = euclidean(scaled_positions[n1], scaled_positions[n2])
-        G.add_edge(n1, n2, weight=distance)
+    for u, v in edges:
+        if u in scaled_positions and v in scaled_positions:
+            dist = euclidean(scaled_positions[u], scaled_positions[v])
+            G.add_edge(u, v, weight=dist)
+        else:
+            # For debugging -- missing positions of new eatery
+            print(f"Skipping edge {u}-{v} due to missing position.")
     
     return G
 
-def draw_graph(graph, path, positions, cost=None):
+def draw_graph(algo_choice, graph, path, positions, start, goal):
     edge_colors = []
-    for edge in graph.edges():
-        if edge in list(zip(path, path[1:])) or tuple(reversed(edge)) in list(zip(path, path[1:])):
-            edge_colors.append('red')
+    for u, v in graph.edges():
+        if path and u in path and v in path:
+            i1 = path.index(u)
+            i2 = path.index(v)
+            if abs(i1 - i2) == 1:
+                edge_colors.append('red')
+            else:
+                edge_colors.append('gray')
         else:
             edge_colors.append('gray')
 
-    plt.figure(figsize=(12, 10))
-    nx.draw(graph, positions, with_labels=True, node_color='lightblue', node_size=1500,
-            edge_color=edge_colors, width=2, font_size=12)
-    
-    edge_distances = {
-        (u, v): f"{int(d['weight'])}m" for u, v, d in graph.edges(data=True)
-    }
+    node_colors = []
+    for node in graph.nodes():
+        if node == start:
+            node_colors.append('green')
+        elif node == goal:
+            node_colors.append('blue')
+        elif path and node in path:
+            node_colors.append('red')
+        else:
+            node_colors.append('lightblue')
 
-    nx.draw_networkx_edge_labels(
-        graph, positions,
-        edge_labels=edge_distances,
-        font_size=9,
-        font_color='black'
-    )
+    plt.figure(figsize=(14, 8))
+    nx.draw(graph, pos=scaled_positions, with_labels=True, node_color=node_colors,
+            edge_color=edge_colors, node_size=1500, font_size=10)
+
+    edge_labels = {(u, v): f"{int(d['weight'])}m" for u, v, d in graph.edges(data=True)}
+    nx.draw_networkx_edge_labels(graph, pos=scaled_positions, edge_labels=edge_labels, font_size=9)
+
+    plt.title(f"{['UCS', 'A*'][int(algo_choice)-1]} Path: {start} → {goal}")
+    plt.axis("equal")
+    plt.show()
 
     return plt
-
-def display_dfs_path(graph, start, goal):
-    dfs_path = dfs(graph, start, goal)
-    print("DFS Path", dfs_path)
-    
-    return dfs_path, "DFS Search"
 
 def display_ucs_path(graph, start, goal):
     ucs_path, cost = ucs(graph, start, goal)
@@ -130,6 +137,14 @@ def display_ucs_path(graph, start, goal):
     print("Total Cost ", cost)
     
     return ucs_path, cost, "UCS Search"
+
+def display_astar_path(graph, start, goal):
+    heuristic = euclidean_heuristic(scaled_positions)
+    astar_path, cost = astar(graph, start, goal, heuristic)
+    print("A* Path", astar_path)
+    print("Total Cost ", cost)
+    
+    return astar_path, cost
 
 def main():
     # Eatery List
@@ -139,22 +154,40 @@ def main():
     # Uncle John's, Gang Gang Chicken
 
     G = initialize_graph()
-    
-    start = "24 Chicken"
-    goal = "La Toca"
 
-    #dfs_path, name = display_dfs_path(G, start, goal)
 
-    ucs_path, cost, name = display_ucs_path(G, start, goal)
+    # --- User Interface ---
+    print("Available algorithms:")
+    print("1. Uniform Cost Search (UCS)")
+    print("2. A* Search")
 
-    pos = scaled_positions
+    algo_choice = input("Enter the number of the algorithm to use (1-2): ").strip()
+    start = input("Enter start node: ").strip()
+    goal = input("Enter goal node: ").strip()
 
-    #draw_graph(G, dfs_path, pos)
+    if start not in G or goal not in G:
+        print("Invalid start or goal node.")
+        print("Available nodes:", list(G.nodes))
+        exit()
 
-    draw_graph(G, ucs_path, pos, cost=cost)
+    path, cost = None, None
+    if algo_choice == "1":
+        path, raw_cost = ucs(G, start, goal)
+        cost = sum(G[path[i]][path[i + 1]]['weight'] for i in range(len(path) - 1)) if path else None
+    elif algo_choice == "2":
+        heuristic = euclidean_heuristic(scaled_positions)
+        path, cost = astar(G, start, goal, heuristic)
+    else:
+        print("Invalid algorithm choice.")
+        exit()
 
-    plt.axis("equal")
-    plt.show()
+    if path:
+        print(f"\nPath found: {' -> '.join(path)}")
+        print(f"Total cost: {round(cost, 2)}")
+        draw_graph(algo_choice, G, path, scaled_positions, start, goal)
+    else:
+        print("No path found.")
+
 
 if __name__ == "__main__":
     main()

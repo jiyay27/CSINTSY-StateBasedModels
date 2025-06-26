@@ -28,7 +28,7 @@ def astar(graph, start, goal, heuristic):
         g = g_scores[current]
         h = heuristic(current, goal)
         f = g + h
-        print(f"Visited: {current} | g(n): {round(g,2)} | h(n): {round(h,2)} | f(n): {round(f,2)}")
+        #print(f"Visited: {current} | g(n): {round(g,2)} | h(n): {round(h,2)} | f(n): {round(f,2)}")
 
 
         for neighbor in graph.neighbors(current):
@@ -40,6 +40,6 @@ def astar(graph, start, goal, heuristic):
                 h = heuristic(neighbor, goal)
                 f = tentative_g + h
                 heapq.heappush(open_set, (f, path + [neighbor]))
-                print(f"Exploring {neighbor} via {current} | g: {round(tentative_g,2)} h: {round(h,2)} f: {round(f,2)}")
+                #print(f"Exploring {neighbor} via {current} | g: {round(tentative_g,2)} h: {round(h,2)} f: {round(f,2)}")
 
     return None, float('inf')  # no path found
