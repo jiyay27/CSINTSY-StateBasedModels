@@ -80,6 +80,7 @@ edges = [
     ("24 Chicken", "K-Mart"),
 ]
 
+
 heuristics = {}
 
 def initialize_graph():
@@ -140,7 +141,7 @@ def main():
     G = initialize_graph()
     
     start = "24 Chicken"
-    goal = "Green Mall"
+    goal = "La Toca"
 
     #dfs_path, name = display_dfs_path(G, start, goal)
 
