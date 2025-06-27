@@ -9,6 +9,8 @@
 # Informed Search : A*
 
 # For visualization and graph representation
+import time
+import tracemalloc
 import networkx as nx
 import matplotlib.pyplot as plt
 from utils.math_utils import euclidean, euclidean_heuristic
@@ -170,13 +172,48 @@ def main():
         print("Available nodes:", list(G.nodes))
         exit()
 
+    #start_time = time.time()
+    
+    #end_time = time.time()
+    #print(f"UCS Time: {end_time - start_time:.6f} seconds")
+
+
     path, cost = None, None
     if algo_choice == "1":
-        path, raw_cost = ucs(G, start, goal)
-        cost = sum(G[path[i]][path[i + 1]]['weight'] for i in range(len(path) - 1)) if path else None
+        tracemalloc.start()
+        start_time = time.time()
+
+        path, cost = ucs(G, start, goal)
+
+        end_time = time.time()
+        current, peak = tracemalloc.get_traced_memory()
+        tracemalloc.stop()
+
+        current_mb = current / 10**6
+        peak_mb = peak / 10**6
+
+        print(f"Time taken: {end_time - start_time:.6f} seconds")
+        print(f"Current memory usage: {current_mb:.6f} MB")
+        print(f"Peak memory usage: {peak_mb:.6f} MB")
+
     elif algo_choice == "2":
+        tracemalloc.start()
+        start_time = time.time()
+
         heuristic = euclidean_heuristic(scaled_positions)
         path, cost = astar(G, start, goal, heuristic)
+
+        end_time = time.time()
+        current, peak = tracemalloc.get_traced_memory()
+        tracemalloc.stop()
+
+        current_mb = current / 10**6
+        peak_mb = peak / 10**6
+
+        print(f"Time taken: {end_time - start_time:.6f} seconds")
+        print(f"Current memory usage: {current_mb:.6f} MB")
+        print(f"Peak memory usage: {peak_mb:.6f} MB")
+        
     else:
         print("Invalid algorithm choice.")
         exit()

@@ -9,9 +9,18 @@ def astar(graph, start, goal, heuristic):
     g_scores = {start: 0}
     visited = set()
 
+    nodes_visited = 0
+    nodes_expanded = 0
+
     while open_set:
         f_score, path = heapq.heappop(open_set)
         current = path[-1]
+
+        if current in visited:
+            continue
+
+        visited.add(current)
+        nodes_visited += 1
 
         if current == goal:
             final_g = g_scores[current]
@@ -19,17 +28,8 @@ def astar(graph, start, goal, heuristic):
             final_f = final_g + final_h
             print(f"\nA* reached goal: {current}")
             print(f"g(n): {round(final_g, 2)}, h(n): {round(final_h, 2)}, f(n): {round(final_f, 2)}")
+            print(f"A* - Nodes Visited: {nodes_visited}, Nodes Expanded: {nodes_expanded}")
             return path, final_f
-
-        if current in visited:
-            continue
-
-        visited.add(current)
-        g = g_scores[current]
-        h = heuristic(current, goal)
-        f = g + h
-        #print(f"Visited: {current} | g(n): {round(g,2)} | h(n): {round(h,2)} | f(n): {round(f,2)}")
-
 
         for neighbor in graph.neighbors(current):
             edge_weight = graph[current][neighbor]['weight']
@@ -40,6 +40,7 @@ def astar(graph, start, goal, heuristic):
                 h = heuristic(neighbor, goal)
                 f = tentative_g + h
                 heapq.heappush(open_set, (f, path + [neighbor]))
-                #print(f"Exploring {neighbor} via {current} | g: {round(tentative_g,2)} h: {round(h,2)} f: {round(f,2)}")
+                nodes_expanded += 1
 
-    return None, float('inf')  # no path found
+    print(f"A* - Nodes Visited: {nodes_visited}, Nodes Expanded: {nodes_expanded}")
+    return None, float('inf')
