@@ -172,11 +172,6 @@ def main():
         print("Available nodes:", list(G.nodes))
         exit()
 
-    #start_time = time.time()
-    
-    #end_time = time.time()
-    #print(f"UCS Time: {end_time - start_time:.6f} seconds")
-
 
     path, cost = None, None
     if algo_choice == "1":
