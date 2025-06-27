@@ -157,7 +157,6 @@ def main():
 
     G = initialize_graph()
 
-
     # --- User Interface ---
     print("Available algorithms:")
     print("1. Uniform Cost Search (UCS)")
@@ -171,7 +170,6 @@ def main():
         print("Invalid start or goal node.")
         print("Available nodes:", list(G.nodes))
         exit()
-
 
     path, cost = None, None
     if algo_choice == "1":
